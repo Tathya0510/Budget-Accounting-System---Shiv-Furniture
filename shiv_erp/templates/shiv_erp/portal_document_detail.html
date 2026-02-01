@@ -1,0 +1,111 @@
+{% extends "shiv_erp/base.html" %}
+{% block title %}{{ doc.number }} – BudgetWise{% endblock %}
+{% block content %}
+  <div class="d-flex justify-content-between align-items-start mb-3">
+    <div class="text-muted">{{ doc.get_doc_type_display }} • {{ doc.issue_date }}</div>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-secondary" href="{% url 'portal_documents' %}">Back</a>
+      <a class="btn btn-outline-primary" href="{% url 'portal_document_pdf' doc.number %}">Download PDF</a>
+      {% if doc.doc_type == 'customer_invoice' and doc.payment_status != 'paid' %}
+        <a class="btn btn-primary" href="{% url 'portal_pay_document' doc.number %}">Pay</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body p-4 p-lg-5">
+      <div class="d-flex justify-content-between align-items-start mb-5">
+        <div>
+          <div class="display-6 fw-bold">BUDGETWISE</div>
+          <div class="text-muted">Quality Furniture for Modern Living</div>
+        </div>
+        <div class="text-end">
+          <div class="fw-semibold text-uppercase">{{ doc.get_doc_type_display }}</div>
+          <div class="text-muted">#{{ doc.number }}</div>
+        </div>
+      </div>
+
+      <div class="row g-4 mb-5">
+        <div class="col-md-6">
+          <div class="text-uppercase text-muted small fw-semibold mb-2">Billed To</div>
+          <div class="fw-semibold">{{ doc.contact.name }}</div>
+          {% if doc.contact.email %}
+            <div class="text-muted">{{ doc.contact.email }}</div>
+          {% endif %}
+          {% if doc.contact.phone %}
+            <div class="text-muted">{{ doc.contact.phone }}</div>
+          {% endif %}
+        </div>
+        <div class="col-md-6 text-md-end">
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="text-uppercase text-muted small fw-semibold">Date</div>
+              <div class="fw-semibold">{{ doc.issue_date }}</div>
+            </div>
+            <div class="col-6">
+              <div class="text-uppercase text-muted small fw-semibold">Due Date</div>
+              <div class="fw-semibold">{% if doc.due_date %}{{ doc.due_date }}{% else %}—{% endif %}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead class="border-bottom">
+            <tr>
+              <th class="text-uppercase small text-muted">Item Description</th>
+              <th class="text-uppercase small text-muted text-end">Qty</th>
+              <th class="text-uppercase small text-muted text-end">Price</th>
+              <th class="text-uppercase small text-muted text-end">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for l in doc.lines.all %}
+              <tr>
+                <td>
+                  <div class="fw-semibold">{{ l.description|default:l.product.name }}</div>
+                  {% if l.product and l.product.category %}
+                    <div class="text-muted small">{{ l.product.category }}</div>
+                  {% endif %}
+                </td>
+                <td class="text-end">{{ l.quantity }}</td>
+                <td class="text-end">{{ l.unit_price }}</td>
+                <td class="text-end fw-semibold">{{ l.line_total }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="4" class="text-muted">No lines.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="row justify-content-end mt-4">
+        <div class="col-md-6 col-lg-5">
+          <div class="d-flex justify-content-between py-2">
+            <div class="text-muted">Subtotal</div>
+            <div class="fw-semibold">{{ doc.total_amount }}</div>
+          </div>
+          <div class="d-flex justify-content-between py-2">
+            <div class="text-muted">Tax (0%)</div>
+            <div class="fw-semibold">0.00</div>
+          </div>
+          <div class="border-top my-2"></div>
+          <div class="d-flex justify-content-between align-items-center py-2">
+            <div class="text-uppercase fw-semibold">Total Amount</div>
+            <div class="fs-4 fw-bold">{{ doc.total_amount }}</div>
+          </div>
+          <div class="text-end mt-3">
+            {% if doc.is_financial %}
+              <span class="text-uppercase small fw-semibold text-warning">Status: {{ doc.get_payment_status_display|upper }}</span>
+            {% else %}
+              <span class="text-uppercase small fw-semibold text-warning">Status: {{ doc.get_status_display|upper }}</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

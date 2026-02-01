@@ -1,0 +1,117 @@
+{% extends "shiv_erp/base.html" %}
+{% block title %}Documents – BudgetWise{% endblock %}
+{% block content %}
+  <div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+      <h1 class="h4 mb-1">Documents</h1>
+      <div class="text-muted">{{ contact.name }}</div>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a class="btn btn-outline-secondary" href="{% url 'portal_documents' %}">All</a>
+      <a class="btn btn-outline-primary" href="{% url 'portal_documents_by_type' 'customer_invoice' %}">Invoices</a>
+      <a class="btn btn-outline-primary" href="{% url 'portal_documents_by_type' 'vendor_bill' %}">Bills</a>
+      <a class="btn btn-outline-primary" href="{% url 'portal_documents_by_type' 'so' %}">Sales Orders</a>
+      <a class="btn btn-outline-primary" href="{% url 'portal_documents_by_type' 'po' %}">Purchase Orders</a>
+    </div>
+  </div>
+
+  {% if not selected_type or selected_type == 'customer_invoice' %}
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h2 class="h6 mb-0">Invoices</h2>
+          <span class="badge bg-primary rounded-pill">{{ invoice_count }}</span>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th>Invoice</th>
+                <th>Invoice Date</th>
+                <th>Due Date</th>
+                <th class="text-end">Amount</th>
+                <th class="text-end">Amount Due</th>
+                <th>Status</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in invoice_rows %}
+                <tr>
+                  <td class="fw-semibold"><a href="{% url 'portal_document_detail' row.doc.number %}" class="text-decoration-none">{{ row.doc.number }}</a></td>
+                  <td>{{ row.doc.issue_date }}</td>
+                  <td>{% if row.doc.due_date %}{{ row.doc.due_date }}{% else %}—{% endif %}</td>
+                  <td class="text-end">{{ row.doc.total_amount }}</td>
+                  <td class="text-end">{{ row.amount_due }}</td>
+                  <td>
+                    <span class="badge {% if row.doc.payment_status == 'paid' %}bg-success{% elif row.doc.payment_status == 'partially_paid' %}bg-warning{% else %}bg-secondary{% endif %}">
+                      {{ row.doc.get_payment_status_display }}
+                    </span>
+                  </td>
+                  <td class="text-end">
+                    <div class="btn-group btn-group-sm" role="group">
+                      <a class="btn btn-outline-primary" href="{% url 'portal_document_detail' row.doc.number %}">View</a>
+                      <a class="btn btn-outline-secondary" href="{% url 'portal_document_pdf' row.doc.number %}">Download</a>
+                      {% if row.doc.payment_status != 'paid' %}
+                        <a class="btn btn-primary" href="{% url 'portal_pay_document' row.doc.number %}">Pay</a>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="7" class="text-muted">No invoices found.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% if invoice_count > 0 %}
+          <div class="mt-2 text-end">
+            <a href="{% url 'portal_documents_by_type' 'customer_invoice' %}" class="btn btn-sm btn-link p-0">View all invoices &rarr;</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="card">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>Number</th>
+              <th>Type</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th class="text-end">Total</th>
+              <th>Payment</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in documents %}
+              <tr>
+                <td class="fw-semibold">{{ d.number }}</td>
+                <td>{{ d.get_doc_type_display }}</td>
+                <td>{{ d.issue_date }}</td>
+                <td>{{ d.get_status_display }}</td>
+                <td class="text-end">{{ d.total_amount }}</td>
+                <td>{{ d.get_payment_status_display }}</td>
+                <td class="text-end">
+                  <a class="btn btn-sm btn-outline-primary" href="{% url 'portal_document_detail' d.number %}">View</a>
+                  <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal_document_pdf' d.number %}">Download</a>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="7" class="text-muted">No documents found.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endblock %}

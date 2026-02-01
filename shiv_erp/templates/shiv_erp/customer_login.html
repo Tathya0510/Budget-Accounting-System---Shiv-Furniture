@@ -1,0 +1,49 @@
+{% extends "shiv_erp/base.html" %}
+{% block title %}Customer Login – BudgetWise{% endblock %}
+
+{% block content %}
+  {% url 'portal_dashboard' as portal_url %}
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="mb-2 text-muted small">Customer Portal</div>
+          <h1 class="h5 mb-3">Sign in</h1>
+
+          <form method="post" novalidate>
+            {% csrf_token %}
+            <input
+              type="hidden"
+              name="{{ redirect_field_name }}"
+              value="{% if redirect_field_value %}{{ redirect_field_value }}{% else %}{{ portal_url }}{% endif %}"
+            />
+
+            <div class="mb-3">
+              <label class="form-label" for="id_username">Username</label>
+              <input class="form-control" type="text" name="username" autofocus required id="id_username" />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" for="id_password">Password</label>
+              <input class="form-control" type="password" name="password" required id="id_password" />
+            </div>
+
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger">
+                {% for err in form.non_field_errors %}
+                  {{ err }}{% if not forloop.last %}<br />{% endif %}
+                {% endfor %}
+              </div>
+            {% elif form.errors %}
+              <div class="alert alert-danger">Invalid username or password.</div>
+            {% endif %}
+
+            <button class="btn btn-primary w-100" type="submit">Login</button>
+          </form>
+
+          <div class="text-muted small mt-3">Use the credentials provided by BudgetWise.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

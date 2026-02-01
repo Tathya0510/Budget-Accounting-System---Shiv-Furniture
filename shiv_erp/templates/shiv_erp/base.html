@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}BudgetWise – Budget Accounting{% endblock %}</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script>
+      (() => {
+        const stored = localStorage.getItem("theme")
+        const prefersDark =
+          window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+        const theme = stored === "light" || stored === "dark" ? stored : prefersDark ? "dark" : "light"
+        document.documentElement.dataset.theme = theme
+      })()
+    </script>
+    <style>
+      :root {
+        color-scheme: light;
+        --app-bg: #f8f9fa;
+        --app-surface: #ffffff;
+        --app-text: #212529;
+        --app-muted: #6c757d;
+        --app-border: #dee2e6;
+        --app-shadow: rgba(0, 0, 0, 0.08);
+        --app-link: #0d6efd;
+        --app-link-hover: #0a58ca;
+        --app-input-bg: #ffffff;
+        --app-input-text: #212529;
+        --app-input-border: #ced4da;
+        --app-table-stripe: rgba(0, 0, 0, 0.03);
+        --app-alert-bg: #f8f9fa;
+        --app-alert-border: #dee2e6;
+        --app-focus-shadow: rgba(13, 110, 253, 0.25);
+        --bs-body-color: var(--app-text);
+        --bs-body-bg: var(--app-bg);
+        --bs-secondary-color: var(--app-muted);
+        --bs-tertiary-color: var(--app-muted);
+        --bs-border-color: var(--app-border);
+        --bs-card-bg: var(--app-surface);
+        --bs-card-color: var(--app-text);
+        --bs-table-color: var(--app-text);
+        --bs-table-bg: var(--app-surface);
+        --bs-table-border-color: var(--app-border);
+        --bs-table-striped-bg: var(--app-table-stripe);
+        --bs-table-striped-color: var(--app-text);
+        --bs-link-color: var(--app-link);
+        --bs-link-hover-color: var(--app-link-hover);
+        --bs-heading-color: var(--app-text);
+        --bs-emphasis-color: var(--app-text);
+      }
+      [data-theme="dark"] {
+        color-scheme: dark;
+        --app-bg: #0f1115;
+        --app-surface: #151922;
+        --app-text: #e6e8ec;
+        --app-muted: #a7adbb;
+        --app-border: #2a3140;
+        --app-shadow: rgba(0, 0, 0, 0.45);
+        --app-link: #7db0ff;
+        --app-link-hover: #a0c4ff;
+        --app-input-bg: #0f131a;
+        --app-input-text: #e6e8ec;
+        --app-input-border: #2a3140;
+        --app-table-stripe: rgba(255, 255, 255, 0.04);
+        --app-alert-bg: #121722;
+        --app-alert-border: #2a3140;
+        --app-focus-shadow: rgba(125, 176, 255, 0.3);
+        --bs-body-color: var(--app-text);
+        --bs-body-bg: var(--app-bg);
+        --bs-secondary-color: var(--app-muted);
+        --bs-tertiary-color: var(--app-muted);
+        --bs-border-color: var(--app-border);
+        --bs-card-bg: var(--app-surface);
+        --bs-card-color: var(--app-text);
+        --bs-table-color: var(--app-text);
+        --bs-table-bg: var(--app-surface);
+        --bs-table-border-color: var(--app-border);
+        --bs-table-striped-bg: var(--app-table-stripe);
+        --bs-table-striped-color: var(--app-text);
+        --bs-link-color: var(--app-link);
+        --bs-link-hover-color: var(--app-link-hover);
+        --bs-heading-color: var(--app-text);
+        --bs-emphasis-color: var(--app-text);
+      }
+      body {
+        background-color: var(--app-bg) !important;
+        color: var(--app-text);
+      }
+      a {
+        color: var(--app-link);
+      }
+      a:hover {
+        color: var(--app-link-hover);
+      }
+      .text-muted {
+        color: var(--app-muted) !important;
+      }
+      .text-secondary,
+      .text-body-secondary {
+        color: var(--app-muted) !important;
+      }
+      .bg-light,
+      .bg-white,
+      .navbar {
+        background-color: var(--app-surface) !important;
+      }
+      .border,
+      .border-bottom,
+      .border-top,
+      .card,
+      .table,
+      .dropdown-menu {
+        border-color: var(--app-border) !important;
+      }
+      .card,
+      .app-card {
+        background-color: var(--app-surface);
+        box-shadow: 0 0.125rem 0.25rem var(--app-shadow);
+      }
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6,
+      .card-title {
+        color: var(--app-text);
+      }
+      .table {
+        color: var(--app-text);
+      }
+      .table th,
+      .table td {
+        color: var(--app-text);
+      }
+      .table > :not(caption) > * > * {
+        background-color: var(--app-surface);
+      }
+      .table-striped > tbody > tr:nth-of-type(odd) > * {
+        background-color: var(--app-table-stripe);
+      }
+      .form-control,
+      .form-select {
+        background-color: var(--app-input-bg);
+        color: var(--app-input-text);
+        border-color: var(--app-input-border);
+      }
+      .form-control:focus,
+      .form-select:focus {
+        border-color: var(--app-link);
+        box-shadow: 0 0 0 0.25rem var(--app-focus-shadow);
+      }
+      .form-control::placeholder {
+        color: var(--app-muted);
+      }
+      .alert {
+        background-color: var(--app-alert-bg);
+        border-color: var(--app-alert-border);
+        color: var(--app-text);
+      }
+      .btn,
+      .navbar,
+      .card,
+      .table,
+      .form-control,
+      .form-select,
+      .alert {
+        transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+      .navbar-brand,
+      .navbar-brand:hover,
+      .navbar-brand:focus {
+        color: var(--app-text);
+      }
+      [data-theme="dark"] .btn-outline-secondary {
+        color: #e5e7eb;
+        border-color: #4b5563;
+      }
+      [data-theme="dark"] .btn-outline-secondary:hover {
+        background-color: #4b5563;
+        color: #ffffff;
+      }
+      [data-theme="dark"] .btn-outline-primary {
+        color: #a0c4ff;
+        border-color: #7db0ff;
+      }
+      [data-theme="dark"] .btn-outline-primary:hover {
+        background-color: #7db0ff;
+        color: #0f1115;
+      }
+      [data-theme="dark"] .btn-outline-danger {
+        color: #fca5a5;
+        border-color: #f87171;
+      }
+      [data-theme="dark"] .btn-outline-danger:hover {
+        background-color: #f87171;
+        color: #0f1115;
+      }
+    </style>
+  </head>
+  <body class="bg-light">
+    <nav class="navbar navbar-expand-lg bg-white border-bottom">
+      <div class="container">
+        <a class="navbar-brand fw-semibold" href="{% url 'home' %}">BudgetWise</a>
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-sm btn-outline-secondary" type="button" id="theme-toggle" aria-pressed="false">
+            Dark mode
+          </button>
+          {% if user.is_authenticated %}
+            {% if user.is_staff %}
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'budget_report' %}">Budget Report</a>
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'admin:index' %}">Admin</a>
+            {% else %}
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'portal_dashboard' %}">Portal</a>
+            {% endif %}
+            <form method="post" action="{% url 'logout' %}" class="d-inline">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-outline-danger" type="submit">Logout</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    </nav>
+
+    <main class="container py-4">
+      {% if messages %}
+        <div class="mb-3">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} mb-2">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      const getPreferredTheme = () => {
+        const stored = localStorage.getItem("theme")
+        if (stored === "light" || stored === "dark") {
+          return stored
+        }
+        if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+          return "dark"
+        }
+        return "light"
+      }
+      const themeToggle = document.getElementById("theme-toggle")
+      const applyTheme = (theme) => {
+        document.documentElement.dataset.theme = theme
+        if (themeToggle) {
+          const isDark = theme === "dark"
+          themeToggle.setAttribute("aria-pressed", isDark ? "true" : "false")
+          themeToggle.textContent = isDark ? "Light mode" : "Dark mode"
+        }
+      }
+      applyTheme(getPreferredTheme())
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark"
+          localStorage.setItem("theme", next)
+          applyTheme(next)
+        })
+      }
+      const media = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null
+      if (media) {
+        media.addEventListener("change", (event) => {
+          if (!localStorage.getItem("theme")) {
+            applyTheme(event.matches ? "dark" : "light")
+          }
+        })
+      }
+    </script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

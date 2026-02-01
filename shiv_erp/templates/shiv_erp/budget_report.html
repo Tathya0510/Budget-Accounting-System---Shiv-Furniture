@@ -1,0 +1,359 @@
+{% extends "shiv_erp/base.html" %}
+{% block title %}Executive Summary – ShivFinance{% endblock %}
+
+{% block top_controls %}
+  <form class="d-none d-lg-flex" method="get" action="{% url 'budget_report' %}">
+    {% if selected_kind %}<input type="hidden" name="kind" value="{{ selected_kind }}" />{% endif %}
+    <div class="input-group">
+      <span class="input-group-text bg-white"><i class="bi bi-calendar3"></i></span>
+      <select class="form-select" name="period" onchange="this.form.submit()">
+        <option value="">All Periods</option>
+        {% for p in periods %}
+          <option value="{{ p.id }}" {% if selected_period and selected_period.id == p.id %}selected{% endif %}>
+            {{ p.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+  </form>
+{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+    <div>
+      <h1 class="display-6 fw-semibold mb-1">Executive Summary</h1>
+      <div class="text-muted">Strategic financial performance overview for leadership</div>
+    </div>
+    <form class="d-flex gap-2" method="get">
+      <div>
+        <label class="form-label small text-muted mb-1">Period</label>
+        <select class="form-select" name="period">
+          <option value="">All</option>
+          {% for p in periods %}
+            <option value="{{ p.id }}" {% if selected_period and selected_period.id == p.id %}selected{% endif %}>
+              {{ p.name }} ({{ p.start_date }} → {{ p.end_date }})
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="form-label small text-muted mb-1">Kind</label>
+        <select class="form-select" name="kind">
+          <option value="">All</option>
+          {% for v, t in kinds %}
+            <option value="{{ v }}" {% if selected_kind == v %}selected{% endif %}>{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="d-grid" style="min-width: 120px;">
+        <label class="form-label small text-muted mb-1">&nbsp;</label>
+        <button class="btn btn-primary" type="submit">Apply</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-lg-8">
+      <div class="app-card bg-white">
+        <div class="p-4">
+          <div class="d-flex justify-content-between align-items-start gap-3">
+            <div>
+              <div class="h5 mb-1">Financial Health Scorecard</div>
+              <div class="text-muted">Overall performance assessment</div>
+            </div>
+            <div class="text-end">
+              <div class="text-muted small">Overall Score</div>
+              <div class="display-5 fw-semibold {% if overall_score >= 80 %}text-success{% elif overall_score >= 60 %}text-primary{% else %}text-warning{% endif %}">
+                {{ overall_score }}
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-3 mt-2">
+            <div class="col-md-3">
+              <div class="app-card bg-white p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="text-muted small">Revenue Achievement</div>
+                  <i class="bi bi-graph-up text-success"></i>
+                </div>
+                <div class="fs-3 fw-semibold mt-2">{{ revenue_achievement_pct }}%</div>
+                <div class="text-muted small">vs target</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="app-card bg-white p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="text-muted small">Expense Control</div>
+                  <i class="bi bi-shield-check text-success"></i>
+                </div>
+                <div class="fs-3 fw-semibold mt-2">{{ expense_control_pct }}%</div>
+                <div class="text-muted small">under budget</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="app-card bg-white p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="text-muted small">Cash Position</div>
+                  <i class="bi bi-cash-stack text-primary"></i>
+                </div>
+                <div class="fs-3 fw-semibold mt-2">₹{{ cash_net }}</div>
+                <div class="text-muted small">net cash flow</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="app-card bg-white p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="text-muted small">Payment Health</div>
+                  <i class="bi bi-check-circle text-success"></i>
+                </div>
+                <div class="fs-3 fw-semibold mt-2">{{ payment_health_pct }}%</div>
+                <div class="text-muted small">on-time rate</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <div class="d-flex align-items-center gap-2 fw-semibold mb-2"><i class="bi bi-bell"></i> Executive Alerts</div>
+            <div class="app-card bg-white p-3">
+              {% for a in alerts %}
+                <div class="d-flex justify-content-between align-items-start gap-3 py-2 {% if not forloop.last %}border-bottom{% endif %}">
+                  <div>
+                    <div class="fw-semibold">{{ a.title }}</div>
+                    <div class="text-muted small">{{ a.subtitle }}</div>
+                  </div>
+                  {% if a.url %}
+                    <a class="btn btn-sm btn-outline-secondary" href="{{ a.url }}">Review</a>
+                  {% endif %}
+                </div>
+              {% empty %}
+                <div class="text-muted">No alerts.</div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="app-card bg-white mb-3">
+        <div class="p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="fw-semibold d-flex align-items-center gap-2">
+              <span class="brand-badge" style="width: 34px; height: 34px; border-radius: 12px;"><i class="bi bi-plus-circle"></i></span>
+              Quick Entry
+            </div>
+          </div>
+
+          <form method="post" class="vstack gap-2">
+            {% csrf_token %}
+
+            {% if quick_entry_form.non_field_errors %}
+              <div class="alert alert-danger mb-0">{{ quick_entry_form.non_field_errors }}</div>
+            {% endif %}
+
+            <div>
+              <label class="form-label small text-muted mb-1" for="{{ quick_entry_form.period.id_for_label }}">Period</label>
+              {{ quick_entry_form.period }}
+              {% if quick_entry_form.period.errors %}
+                <div class="text-danger small">{{ quick_entry_form.period.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div>
+              <label class="form-label small text-muted mb-1" for="{{ quick_entry_form.kind.id_for_label }}">Kind</label>
+              {{ quick_entry_form.kind }}
+              {% if quick_entry_form.kind.errors %}
+                <div class="text-danger small">{{ quick_entry_form.kind.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="row g-2">
+              <div class="col-8">
+                <label class="form-label small text-muted mb-1" for="{{ quick_entry_form.cost_center_name.id_for_label }}">Cost Center</label>
+                {{ quick_entry_form.cost_center_name }}
+                {% if quick_entry_form.cost_center_name.errors %}
+                  <div class="text-danger small">{{ quick_entry_form.cost_center_name.errors }}</div>
+                {% endif %}
+              </div>
+              <div class="col-4">
+                <label class="form-label small text-muted mb-1" for="{{ quick_entry_form.cost_center_code.id_for_label }}">Code</label>
+                {{ quick_entry_form.cost_center_code }}
+                {% if quick_entry_form.cost_center_code.errors %}
+                  <div class="text-danger small">{{ quick_entry_form.cost_center_code.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="row g-2">
+              <div class="col-6">
+                <label class="form-label small text-muted mb-1" for="{{ quick_entry_form.budget_amount.id_for_label }}">Budget</label>
+                {{ quick_entry_form.budget_amount }}
+                {% if quick_entry_form.budget_amount.errors %}
+                  <div class="text-danger small">{{ quick_entry_form.budget_amount.errors }}</div>
+                {% endif %}
+              </div>
+              <div class="col-6">
+                <label class="form-label small text-muted mb-1" for="{{ quick_entry_form.actual_amount.id_for_label }}">Actual</label>
+                {{ quick_entry_form.actual_amount }}
+                {% if quick_entry_form.actual_amount.errors %}
+                  <div class="text-danger small">{{ quick_entry_form.actual_amount.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="d-grid mt-2">
+              <button class="btn btn-primary" type="submit">Save & Refresh</button>
+            </div>
+
+            <div class="text-muted small">
+              Budget updates the plan; Actual creates a posted bill/invoice line to update actuals.
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="app-card bg-white mb-3">
+        <div class="p-4">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="brand-badge" style="width: 34px; height: 34px; border-radius: 12px;"><i class="bi bi-currency-rupee"></i></span>
+            <div class="fw-semibold">Cash Flow Status</div>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <div class="text-muted small">Operating Cash</div>
+              <div class="fs-4 fw-semibold">₹{{ cash_operating }}</div>
+            </div>
+            <div class="text-muted small">{% if cash_operating_change_pct is not None %}{{ cash_operating_change_pct }}%{% else %}—{% endif %}</div>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <div class="text-muted small">Investing Cash</div>
+              <div class="fs-4 fw-semibold">₹0</div>
+            </div>
+            <div class="text-muted small">0%</div>
+          </div>
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="text-muted small">Financing Cash</div>
+              <div class="fs-4 fw-semibold">₹0</div>
+            </div>
+            <div class="text-muted small">0%</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="app-card bg-white">
+        <div class="p-4">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="brand-badge" style="width: 34px; height: 34px; border-radius: 12px;"><i class="bi bi-credit-card"></i></span>
+            <div class="fw-semibold">Payment Health</div>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="text-muted small">Success Rate</div>
+            <div class="fw-semibold">{{ payment_health_pct }}%</div>
+          </div>
+          <div class="progress" role="progressbar" aria-label="Payment health" aria-valuenow="{{ payment_health_pct }}" aria-valuemin="0" aria-valuemax="100" style="height: 10px;">
+            <div class="progress-bar bg-success" data-progress-width="{{ payment_health_pct }}" style="width: 0%"></div>
+          </div>
+          <div class="row g-2 mt-3">
+            <div class="col-6">
+              <div class="text-muted small">Total Received</div>
+              <div class="fw-semibold">₹{{ cash_received }}</div>
+            </div>
+            <div class="col-6">
+              <div class="text-muted small">Total Paid</div>
+              <div class="fw-semibold">₹{{ cash_paid }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-card bg-white mb-3">
+    <div class="p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <div class="h5 mb-1">Budget vs Actual</div>
+          <div class="text-muted">Cost-center wise budgets and posted actuals</div>
+        </div>
+      </div>
+      <canvas id="budgetChart" height="90"></canvas>
+    </div>
+  </div>
+
+  <div class="app-card bg-white">
+    <div class="p-4">
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>Cost Center</th>
+              <th>Period</th>
+              <th>Kind</th>
+              <th class="text-end">Budget</th>
+              <th class="text-end">Actual</th>
+              <th class="text-end">Variance</th>
+              <th class="text-end">Achievement %</th>
+              <th class="text-end">Remaining</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in rows %}
+              <tr>
+                <td class="fw-semibold">{{ r.budget.analytic_account }}</td>
+                <td>{{ r.budget.period.name }}</td>
+                <td>{{ r.budget.get_kind_display }}</td>
+                <td class="text-end">{{ r.budget.amount }}</td>
+                <td class="text-end">{{ r.actual }}</td>
+                <td class="text-end">{{ r.variance }}</td>
+                <td class="text-end">{{ r.achievement }}</td>
+                <td class="text-end">{{ r.remaining }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="8" class="text-muted">No budgets found.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  {{ chart_labels|json_script:"chart-labels" }}
+  {{ chart_planned|json_script:"chart-planned" }}
+  {{ chart_actuals|json_script:"chart-actuals" }}
+  <script>
+    document.querySelectorAll("[data-progress-width]").forEach((el) => {
+      const v = Number.parseFloat(el.dataset.progressWidth || "0");
+      const clamped = Number.isFinite(v) ? Math.max(0, Math.min(100, v)) : 0;
+      el.style.width = `${clamped}%`;
+    });
+
+    const labels = JSON.parse(document.getElementById("chart-labels").textContent);
+    const planned = JSON.parse(document.getElementById("chart-planned").textContent);
+    const actuals = JSON.parse(document.getElementById("chart-actuals").textContent);
+
+    const ctx = document.getElementById("budgetChart");
+    new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          { label: "Budget", data: planned },
+          { label: "Actual", data: actuals },
+        ],
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: { beginAtZero: true },
+        },
+      },
+    });
+  </script>
+{% endblock %}
